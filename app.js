@@ -63,11 +63,12 @@ function getCampaignIdForOptOutPath(optOutPath) {
 }
 
 function addReportback(message, cb) {
+  var optOutPath = message.campaign == undefined ? 'no' : message.campaign[0]['$'].id;
   var rb = new Reportback({
     time: message.received_at,
     phone: message.phone_number,
     oip: message.keyword[0].opt_in_path_id,
-    campaign: getCampaignIdForOptOutPath(message.campaign[0]['$'].id),
+    campaign: getCampaignIdForOptOutPath(optOutPath),
     url: message.mms[0].image_url
   });
 
@@ -83,7 +84,7 @@ function addReportback(message, cb) {
 
 function parseMessage(index, messages, cb) {
   const message = messages[index];
-  if (message == undefined || message.campaign == undefined) {
+  if (message == undefined) {
     parseMessage(index + 1, messages, cb);
     return;
   }
