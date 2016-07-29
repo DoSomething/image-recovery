@@ -1,4 +1,5 @@
 var request = require('superagent');
+var fs = require('fs');
 var parseString = require('xml2js').parseString;
 
 const RECOVERY_START_TIME = '2016-03-01T00:00:00-05:00';
@@ -29,7 +30,15 @@ function mobileCommonsGet(url, query, cb) {
    });
 }
 
+function downloadImage(url, name, cb) {
+  // Download the image to file system
+  var stream = fs.createWriteStream(`img/${name}.jpg`);
+  var req = request.get(url);
+  req.pipe(stream).on('close', cb);
+}
+
 function parseMessage(index, messages, cb) {
+  console.log(index);
   const message = messages[index];
   if (message == undefined) {
     cb();
@@ -37,10 +46,10 @@ function parseMessage(index, messages, cb) {
   }
 
   console.log(JSON.stringify(message));
-  // Temporary to prevent max stack exceed, once the actual async functions are in this timeout can go
-  setTimeout(function() {
-    parseMessage(index++, messages, cb);
-  }, 100);
+
+  downloadImage(message.mms[0].image_url[0], 'test' + Math.random(), function done() {
+    parseMessage(index + 1, messages, cb);
+  });
 }
 
 function getMessages(page) {
