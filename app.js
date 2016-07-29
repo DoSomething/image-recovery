@@ -1,8 +1,11 @@
 var request = require('superagent');
 var parseString = require('xml2js').parseString;
 
-const RECOVERY_START_TIME = '2016-03-01T00:00:00-05:00';
-const RECOVERY_END_TIME = '2016-07-28T17:00:00-05:00';
+const RECOVERY_START_TIME = '2016-06-01T00:00:00-05:00';
+const RECOVERY_END_TIME = '2016-06-28T17:00:00-05:00';
+
+
+var idNotesForShawn = 209633;
 
 function mobileCommonsGet(url, query, cb) {
   request
@@ -35,7 +38,7 @@ function parseMessage(index, messages, cb) {
     cb();
     return;
   }
-  // console.log(JSON.stringify(message))
+//  console.log(JSON.stringify(message.campaign))
   addReportback(message);   
   // Temporary to prevent max stack exceed, once the actual async functions are in this timeout can go
   setTimeout(function() {
@@ -44,23 +47,70 @@ function parseMessage(index, messages, cb) {
 }
 
 function addReportback(message) {
+  var mocoIdString = message.campaign[0]['$'].id;
+  console.log('campaignId ' + campaignId);
+  return;
   var oip = message.keyword[0].opt_in_path_id;
+  var optInPath = parseInt(oip);
+  if (optInPath == idNotesForShawn) {
+    console.log("Skip notes");
+    return;
+  }
+  var mocoId = parseInt(message.campaign[0]['$'].id);
   console.log('time' + message.received_at);
   console.log('phone ' + message.phone_number);
   console.log('oip ' + oip);
-  console.log('campaign ' + getCampaignIdForOptInPath(oip))
+  console.log('campaign ' + getCampaignIdForOptInPath(optInPath))
   console.log('url ' + message.mms[0].image_url);
   return;
 }
 
+function getDSCampaignIdForMoCoCampaignId(mocoId) {
+  var campaignId;
+  switch (mocoId) {
+    case (145007):
+      campaignId = 3590;
+      break;
+  }
+  return campaignId;
+}
+
+/**
+ *
+ * optInPath should belong to the MoCo Campaign-campaign's Reportback Start Keyword.
+ * e.g. NotesForShawn (node/2805): https://secure.mcommons.com/campaigns/146281/opt_in_paths/209633
+ *
+ */
 function getCampaignIdForOptInPath(optInPath) {
   var campaignId;
-  switch (parseInt(optInPath)) {
-    // Notes For Shawn
+
+  switch (optInPath) {
+
+    // case "loveletters2016"
+    //   campaignId = 3755;
+    //   break;
+// nyleweareable2016
+    // NotesForShawn2016
     case 209633:
       campaignId = 2805;
       break;
+
+    // powertotheperiod2016
+    case 209205:
+      campaignId = 6922;
+      break;
+
+    // PrideOverPrejudice2016
+    case 209531:
+      campaignId = 48;
+      break;
+
+    // smilesforsoldiers2016
+    case 209083:
+      campaignId = 2933;
+      break;
   }
+
   return campaignId;
 }
 
