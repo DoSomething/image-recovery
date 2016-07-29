@@ -1,0 +1,15 @@
+{
+  "name": "image-recovery",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "superagent": "^2.1.0",
+    "xml2js": "^0.4.17"
+  }
+}
