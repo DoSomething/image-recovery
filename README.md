@@ -1,6 +1,6 @@
-npm install
-heroku local
-touch .env
+`npm install`
+`heroku local`
+`touch .env`
 
 add
 
