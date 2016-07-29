@@ -85,7 +85,7 @@ function addReportback(message, cb) {
 function parseMessage(index, messages, cb) {
   const message = messages[index];
   if (message == undefined) {
-    parseMessage(index + 1, messages, cb);
+    cb();
     return;
   }
 
@@ -114,7 +114,7 @@ function getMessages(page) {
     parseMessage(0, messages['message'], function done() {
       var time = timeUtils.clock(start);
       timeUtils.addRunTime(time);
-      console.log(`Page ${page} took ${time}ms -- Approx. ${Math.round((meta.page_count * timeUtils.average) / 1000)} seconds left (or ${Math.round((meta.page_count * timeUtils.average) / 1000 / 60)} minutes)`);
+      console.log(`Page ${page} took ${time}ms -- Approx. ${Math.round(((meta.page_count - page) * timeUtils.average) / 1000)} seconds left (or ${Math.round(((meta.page_count - page) * timeUtils.average) / 1000 / 60)} minutes)`);
 
       if (page == meta.page_count) {
         console.log("Its finished!");
