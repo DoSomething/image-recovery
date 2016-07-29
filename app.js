@@ -1,6 +1,16 @@
 var request = require('superagent');
 var fs = require('fs');
+var mongoose = require('mongoose');
+var Schema = mongoose.Schema;
 var parseString = require('xml2js').parseString;
+
+var Reportback = mongoose.model('Reportback', new Schema({
+  time: String,
+  phone: String,
+  oip: String,
+  campaign: String,
+  url: String
+}), 'recovery');
 
 const RECOVERY_START_TIME = '2016-03-01T00:00:00-05:00';
 const RECOVERY_END_TIME = '2016-07-28T17:00:00-05:00';
@@ -38,29 +48,39 @@ function downloadImage(url, name, cb) {
 }
 
 function parseMessage(index, messages, cb) {
-  console.log(index);
   const message = messages[index];
   if (message == undefined) {
     cb();
     return;
   }
 
-  console.log(JSON.stringify(message));
-  addReportback(message);
+  // console.log(JSON.stringify(message));
 
-  downloadImage(message.mms[0].image_url[0], 'test' + Math.random(), function done() {
-    parseMessage(index + 1, messages, cb);
+  addReportback(message, function onWrite(id) {
+    downloadImage(message.mms[0].image_url[0], `rb-${id}`, function done() {
+      parseMessage(index + 1, messages, cb);
+    });
   });
 }
 
-function addReportback(message) {
+function addReportback(message, cb) {
   var oip = message.keyword[0].opt_in_path_id;
-  console.log('time' + message.received_at);
-  console.log('phone ' + message.phone_number);
-  console.log('oip ' + oip);
-  console.log('campaign ' + getCampaignIdForOptInPath(oip))
-  console.log('url ' + message.mms[0].image_url);
-  return;
+  var rb = new Reportback({
+    time: message.received_at,
+    phone: message.phone_number,
+    oip: oip,
+    campaign: getCampaignIdForOptInPath(oip),
+    url: message.mms[0].image_url
+  });
+
+  rb.save(function(err) {
+    if (err) {
+      console.log(err);
+      return;
+    }
+
+    cb(rb.id);
+  })
 }
 
 function getCampaignIdForOptInPath(optInPath) {
@@ -75,6 +95,7 @@ function getCampaignIdForOptInPath(optInPath) {
 }
 
 function getMessages(page) {
+  console.log(`Getting page ${page}`);
   const query = {
     start_time: RECOVERY_START_TIME,
     end_time: RECOVERY_END_TIME,
@@ -98,4 +119,5 @@ function getMessages(page) {
   });
 }
 
+mongoose.connect('mongodb://localhost/');
 getMessages(1);
