@@ -46,10 +46,32 @@ function parseMessage(index, messages, cb) {
   }
 
   console.log(JSON.stringify(message));
+  addReportback(message);
 
   downloadImage(message.mms[0].image_url[0], 'test' + Math.random(), function done() {
     parseMessage(index + 1, messages, cb);
   });
+}
+
+function addReportback(message) {
+  var oip = message.keyword[0].opt_in_path_id;
+  console.log('time' + message.received_at);
+  console.log('phone ' + message.phone_number);
+  console.log('oip ' + oip);
+  console.log('campaign ' + getCampaignIdForOptInPath(oip))
+  console.log('url ' + message.mms[0].image_url);
+  return;
+}
+
+function getCampaignIdForOptInPath(optInPath) {
+  var campaignId;
+  switch (parseInt(optInPath)) {
+    // Notes For Shawn
+    case 209633:
+      campaignId = 2805;
+      break;
+  }
+  return campaignId;
 }
 
 function getMessages(page) {
