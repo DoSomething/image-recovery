@@ -4,13 +4,15 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 var parseString = require('xml2js').parseString;
 var timeUtils = require(__dirname + '/time_utils');
+var smsConfig = require(__dirname + '/sms_config');
 
 var Reportback = mongoose.model('Reportback', new Schema({
   time: String,
   phone: String,
   oip: String,
   campaign: String,
-  url: String
+  url: String,
+  nid: String
 }), 'recovery');
 
 const RECOVERY_START_TIME = '2016-03-01T00:00:00-05:00';
@@ -48,29 +50,25 @@ function downloadImage(url, name, cb) {
   req.pipe(stream).on('close', cb);
 }
 
-function parseMessage(index, messages, cb) {
-  const message = messages[index];
-  if (message == undefined) {
-    cb();
-    return;
+function getCampaignIdForOptOutPath(optOutPath) {
+  var config = smsConfig.find(function(conf) {
+    return conf.campaign_optout_id == optOutPath;
+  });
+
+  if (!config) {
+    console.log(optOutPath);
+    return 'unknown';
   }
 
-  // console.log(JSON.stringify(message));
-
-  addReportback(message, function onWrite(id) {
-    downloadImage(message.mms[0].image_url[0], `rb-${id}`, function done() {
-      parseMessage(index + 1, messages, cb);
-    });
-  });
+  return config.campaign_nid;
 }
 
 function addReportback(message, cb) {
-  var oip = message.keyword[0].opt_in_path_id;
   var rb = new Reportback({
     time: message.received_at,
     phone: message.phone_number,
-    oip: oip,
-    campaign: getCampaignIdForOptInPath(oip),
+    oip: message.keyword[0].opt_in_path_id,
+    campaign: getCampaignIdForOptOutPath(message.campaign[0]['$'].id),
     url: message.mms[0].image_url
   });
 
@@ -84,15 +82,18 @@ function addReportback(message, cb) {
   })
 }
 
-function getCampaignIdForOptInPath(optInPath) {
-  var campaignId;
-  switch (parseInt(optInPath)) {
-    // Notes For Shawn
-    case 209633:
-      campaignId = 2805;
-      break;
+function parseMessage(index, messages, cb) {
+  const message = messages[index];
+  if (message == undefined) {
+    cb();
+    return;
   }
-  return campaignId;
+
+  addReportback(message, function onWrite(id) {
+    downloadImage(message.mms[0].image_url[0], `rb-${id}`, function done() {
+      parseMessage(index + 1, messages, cb);
+    });
+  });
 }
 
 function getMessages(page) {
