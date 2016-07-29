@@ -56,8 +56,7 @@ function getCampaignIdForOptOutPath(optOutPath) {
   });
 
   if (!config) {
-    console.log(optOutPath);
-    return 'unknown';
+    return `unknown-${optOutPath}`;
   }
 
   return config.campaign_nid;
@@ -84,8 +83,8 @@ function addReportback(message, cb) {
 
 function parseMessage(index, messages, cb) {
   const message = messages[index];
-  if (message == undefined) {
-    cb();
+  if (message == undefined || message.campaign == undefined) {
+    parseMessage(index + 1, messages, cb);
     return;
   }
 
