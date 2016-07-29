@@ -3,6 +3,7 @@ var fs = require('fs');
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 var parseString = require('xml2js').parseString;
+var timeUtils = require(__dirname + '/time_utils');
 
 var Reportback = mongoose.model('Reportback', new Schema({
   time: String,
@@ -96,6 +97,8 @@ function getCampaignIdForOptInPath(optInPath) {
 
 function getMessages(page) {
   console.log(`Getting page ${page}`);
+  var start = timeUtils.clock();
+
   const query = {
     start_time: RECOVERY_START_TIME,
     end_time: RECOVERY_END_TIME,
@@ -108,12 +111,16 @@ function getMessages(page) {
     const meta = messages['$'];
 
     parseMessage(0, messages['message'], function done() {
+      var time = timeUtils.clock(start);
+      timeUtils.addRunTime(time);
+      console.log(`Page ${page} took ${time}ms -- Approx. ${Math.round((meta.page_count * timeUtils.average) / 1000)} seconds left (or ${Math.round((meta.page_count * timeUtils.average) / 1000 / 60)} minutes)`);
+
       if (page == meta.page_count) {
         console.log("Its finished!");
       }
       else {
         // uncomment when we wanna go live....
-        // getMessages(page++);
+        getMessages(page + 1);
       }
     });
   });
