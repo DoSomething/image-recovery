@@ -128,4 +128,4 @@ function getMessages(page) {
 }
 
 mongoose.connect('mongodb://localhost/');
-getMessages(1);
+getMessages(946);
