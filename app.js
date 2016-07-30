@@ -97,6 +97,10 @@ function parseMessage(index, messages, cb) {
 }
 
 function getMessages(page) {
+  if (page == -1) {
+    return.
+  }
+
   console.log(`Getting page ${page}`);
   var start = timeUtils.clock();
 
@@ -128,4 +132,4 @@ function getMessages(page) {
 }
 
 mongoose.connect('mongodb://localhost/');
-getMessages(946);
+//getMessages(-1);
