@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "fast-csv": "^2.1.0",
     "mongoose": "^4.5.7",
     "superagent": "^2.1.0",
     "xml2js": "^0.4.17"
